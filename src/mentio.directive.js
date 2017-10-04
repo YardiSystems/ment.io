@@ -565,16 +565,15 @@ angular.module('mentio', [])
                         });
                 }
 
-                angular.element($window).bind(
-                    'resize', function () {
-                        if (scope.isVisible()) {
-                            var triggerCharSet = [];
-                            triggerCharSet.push(scope.triggerChar);
-                            mentioUtil.popUnderMention(scope.parentMentio.context(),
-                                triggerCharSet, element, scope.requireLeadingSpace);
-                        }
+                function windowResizeHandler() {
+                    if (scope.isVisible()) {
+                        var triggerCharSet = [];
+                        triggerCharSet.push(scope.triggerChar);
+                        mentioUtil.popUnderMention(scope.parentMentio.context(),
+                            triggerCharSet, element, scope.requireLeadingSpace);
                     }
-                );
+                }
+                angular.element($window).on('resize', windowResizeHandler);
 
                 scope.$watch('items', function (items) {
                     if (items && items.length > 0) {
@@ -599,6 +598,7 @@ angular.module('mentio', [])
                 });
 
                 scope.parentMentio.$on('$destroy', function () {
+                    angular.element($window).off('resize', windowResizeHandler);
                     element.remove();
                 });
 
