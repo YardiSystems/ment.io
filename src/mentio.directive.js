@@ -203,7 +203,6 @@ angular.module('mentio', [])
                 }
 
                 function keyPasteHandler(event) {
-                    console.log('here', new Date());
                     var activeMenuScope = $scope.getActiveMenuScope();
                     if (activeMenuScope) {
                         if (event.which === 9 || event.which === 13) {
