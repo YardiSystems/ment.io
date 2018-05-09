@@ -434,15 +434,25 @@ angular.module('mentio')
         function localToGlobalCoordinates(ctx, element, coordinates) {
             var obj = element;
             var iframe = ctx ? ctx.iframe : null;
+            var hasFixedElm = false;
+            var lastElm;
             while(obj) {
                 coordinates.left += obj.offsetLeft + obj.clientLeft;
                 coordinates.top += obj.offsetTop + obj.clientTop;
+                if (!obj.offsetParent) {
+                    lastElm = obj;
+                }
                 obj = obj.offsetParent;
                 if (!obj && iframe) {
                     obj = iframe;
                     iframe = null;
                 }
-            }            
+            }
+
+            if (isfixed(lastElm)) {
+                hasFixedElm = true;
+            }
+
             obj = element;
             iframe = ctx ? ctx.iframe : null;
             while(obj !== getDocument().body) {
@@ -457,7 +467,12 @@ angular.module('mentio')
                     obj = iframe;
                     iframe = null;
                 }
-            }            
+            }
+
+            if (hasFixedElm && document.documentElement.scrollTop) {
+                // concat with document scrollTop
+                coordinates.top += (document.documentElement.scrollTop + 1);
+            }
          }
 
         function getTextAreaOrInputUnderlinePosition (ctx, element, position) {
@@ -544,6 +559,17 @@ angular.module('mentio')
 
             return coordinates;
         }
+
+        var isfixed = function(elm) {
+            var el;
+            if (typeof elm === 'object') el = elm[0] || elm;
+            else if (typeof elm === 'string') el = document.querySelector(elm);
+            while (typeof el === 'object' && el.nodeName.toLowerCase() !== 'body') {
+                if (window.getComputedStyle(el).getPropertyValue('position').toLowerCase() === 'fixed') return true;
+                el = el.parentElement;
+            }
+            return false;
+        };
 
         return {
             // public

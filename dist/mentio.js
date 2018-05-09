@@ -1119,15 +1119,25 @@ angular.module('mentio')
         function localToGlobalCoordinates(ctx, element, coordinates) {
             var obj = element;
             var iframe = ctx ? ctx.iframe : null;
+            var hasFixedElm = false;
+            var lastElm;
             while(obj) {
                 coordinates.left += obj.offsetLeft + obj.clientLeft;
                 coordinates.top += obj.offsetTop + obj.clientTop;
+                if (!obj.offsetParent) {
+                    lastElm = obj;
+                }
                 obj = obj.offsetParent;
                 if (!obj && iframe) {
                     obj = iframe;
                     iframe = null;
                 }
-            }            
+            }
+
+            if (isfixed(lastElm)) {
+                hasFixedElm = true;
+            }
+
             obj = element;
             iframe = ctx ? ctx.iframe : null;
             while(obj !== getDocument().body) {
@@ -1142,7 +1152,12 @@ angular.module('mentio')
                     obj = iframe;
                     iframe = null;
                 }
-            }            
+            }
+
+            if (hasFixedElm && document.documentElement.scrollTop) {
+                // concat with document scrollTop
+                coordinates.top += (document.documentElement.scrollTop + 1);
+            }
          }
 
         function getTextAreaOrInputUnderlinePosition (ctx, element, position) {
@@ -1230,6 +1245,17 @@ angular.module('mentio')
             return coordinates;
         }
 
+        var isfixed = function(elm) {
+            var el;
+            if (typeof elm === 'object') el = elm[0] || elm;
+            else if (typeof elm === 'string') el = document.querySelector(elm);
+            while (typeof el === 'object' && el.nodeName.toLowerCase() !== 'body') {
+                if (window.getComputedStyle(el).getPropertyValue('position').toLowerCase() === 'fixed') return true;
+                el = el.parentElement;
+            }
+            return false;
+        };
+
         return {
             // public
             popUnderMention: popUnderMention,
@@ -1254,4 +1280,4 @@ angular.module('mentio')
         };
     }]);
 
-angular.module("mentio").run(["$templateCache", function($templateCache) {$templateCache.put("mentio-menu.tpl.html","<style>\n.scrollable-menu {\n    height: auto;\n    max-height: 300px;\n    overflow: auto;\n}\n\n.menu-highlighted {\n    font-weight: bold;\n}\n</style>\n<ul class=\"dropdown-menu scrollable-menu\" style=\"display:block\">\n    <li mentio-menu-item=\"item\" ng-repeat=\"item in items track by $index\">\n        <a class=\"text-primary\" ng-bind-html=\"item.label | mentioHighlight:typedTerm:\'menu-highlighted\' | unsafe\"></a>\n    </li>\n</ul>");}]);
+angular.module("mentio").run(["$templateCache", function($templateCache) {$templateCache.put("mentio-menu.tpl.html","<style>\r\n.scrollable-menu {\r\n    height: auto;\r\n    max-height: 300px;\r\n    overflow: auto;\r\n}\r\n\r\n.menu-highlighted {\r\n    font-weight: bold;\r\n}\r\n</style>\r\n<ul class=\"dropdown-menu scrollable-menu\" style=\"display:block\">\r\n    <li mentio-menu-item=\"item\" ng-repeat=\"item in items track by $index\">\r\n        <a class=\"text-primary\" ng-bind-html=\"item.label | mentioHighlight:typedTerm:\'menu-highlighted\' | unsafe\"></a>\r\n    </li>\r\n</ul>");}]);
